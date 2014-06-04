@@ -1,7 +1,7 @@
 r2gtk
 =====
 
-radare2 pyGTK frontend
+radare2 gtk frontend
 
 Currently I am working on the disassembly view / code navigation features.
 I'll perform code organization when I get the main features of the disas view completed.
