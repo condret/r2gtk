@@ -18,6 +18,6 @@ The tab system will be created, disassembly views can share buffers, or contain 
 The menu system will allow the user to create new disassembly views like pdf, pda, pdb, pd, pdi (starting from current cursor position, or input a starting position), pds, yada yada
 
 
-COMPLILE:
+COMPILE:
 --------
 cd src && make r2gtk

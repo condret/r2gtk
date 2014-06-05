@@ -1,3 +1,5 @@
 *~
 src/obj/*
 src/r2gtk
+tests
+tests/*

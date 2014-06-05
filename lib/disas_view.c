@@ -14,8 +14,9 @@ void new_disas_view_buf(GtkTextBuffer *buffer, RGDisasList *disas_list){
 }
 
 int rg_disas_view(RGDisasList *disas_list){
-    GtkWidget *window, *scrolled_win, *textview;
-    GtkTextBuffer *buffer;
+    GtkWidget *window, *scrolled_win, *textview, *preview_textview, *viewport, *vbox;
+    GtkAdjustment *horizontal, *vertical;
+    GtkTextBuffer *buffer, *preview_buffer;
     PangoFontDescription *font;
 
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -27,6 +28,14 @@ int rg_disas_view(RGDisasList *disas_list){
                     G_CALLBACK (gtk_main_quit), NULL);
 
     font = pango_font_description_from_string ("Monospace 10");
+    
+    preview_textview = gtk_text_view_new ();
+    gtk_widget_modify_font (preview_textview, font);
+    gtk_text_view_set_editable (GTK_TEXT_VIEW (preview_textview), FALSE);
+
+    preview_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (preview_textview));
+    new_disas_view_buf(preview_buffer, disas_list);
+    
     textview = gtk_text_view_new ();
     gtk_widget_modify_font (textview, font);
     gtk_text_view_set_editable (GTK_TEXT_VIEW (textview), FALSE);
@@ -36,23 +45,40 @@ int rg_disas_view(RGDisasList *disas_list){
     g_signal_connect (textview, "event-after", 
 	    G_CALLBACK (event_after), NULL);
     g_signal_connect (textview, "motion-notify-event", 
-	    G_CALLBACK (motion_notify_event), NULL);
+	    G_CALLBACK (motion_notify_event), preview_textview);
     g_signal_connect (textview, "visibility-notify-event", 
 	    G_CALLBACK (visibility_notify_event), NULL);
 
-
-
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
     new_disas_view_buf(buffer, disas_list);
-
+    
     scrolled_win = gtk_scrolled_window_new (NULL, NULL);
     gtk_container_add (GTK_CONTAINER (scrolled_win), textview);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win),
                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    
+    //horizontal = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (scrolled_win));
+    //vertical = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrolled_win));
+    /*
+    viewport = gtk_viewport_new (0,0); //(horizontal, vertical);
+    gtk_container_add (GTK_CONTAINER (viewport), preview_textview);
+    gtk_container_set_border_width (GTK_CONTAINER (viewport), 5);
+    */
+    viewport = gtk_scrolled_window_new (NULL, NULL);
+    gtk_container_add (GTK_CONTAINER (viewport), preview_textview);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (viewport),
+                                  GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+    vbox = gtk_vbox_new (TRUE, 5);
+    gtk_box_pack_start_defaults (GTK_BOX (vbox), viewport);
+    gtk_box_pack_start_defaults (GTK_BOX (vbox), scrolled_win);
 
+    gtk_container_add (GTK_CONTAINER (window), vbox);
+    gtk_widget_show_all (window);
+    
+    /*
     gtk_container_add (GTK_CONTAINER (window), scrolled_win);
     gtk_widget_show_all (window);
-
+    */
     gtk_main();
     return 0;
 }

@@ -115,15 +115,67 @@ void set_cursor_if_appropriate(GtkTextView *text_view, gint x, gint y){
         g_slist_free (tags);
     }
 }
+/*
+void follow_if_link(GtkWidget   *text_view, GtkTextIter *iter){
+    GSList *tags = NULL, *tagp = NULL;
+    GtkTextMark *mark;
+    char text[128];
+    tags = gtk_text_iter_get_tags (iter);
+    for (tagp = tags;  tagp != NULL;  tagp = tagp->next){
+        GtkTextTag *tag = tagp->data;
+        gint address = GPOINTER_TO_INT(g_object_get_data (G_OBJECT (tag), "address"));
+        snprintf(text, sizeof(text), "0x%08x", address);
+        mark = gtk_text_buffer_get_mark(
+                    gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view)), 
+                    text
+               );
+        gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (text_view), mark, 0.0, TRUE, 0.0, 0.5);
+        if (address != 0){
+            break;
+        }
+    }
+    if (tags){
+        g_slist_free (tags);
+    }
+}
+*/
+void show_preview_if_appropriate(GtkTextView *preview_textview, gint x, gint y){
+    GSList *tags = NULL, *tagp = NULL;
+    GtkTextIter iter;
+    GtkTextMark *mark;
+    char text[128];
+    
+    gtk_text_view_get_iter_at_location (preview_textview, &iter, x, y);
+    tags = gtk_text_iter_get_tags (&iter);
+
+    for (tagp = tags;  tagp != NULL;  tagp = tagp->next){
+        GtkTextTag *tag = tagp->data;
+        gint address = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tag), "address"));
+        snprintf(text, sizeof(text), "0x%08x", address);
+        mark = gtk_text_buffer_get_mark(
+                    gtk_text_view_get_buffer (preview_textview), 
+                    text
+               );
+        gtk_text_view_scroll_to_mark (preview_textview, mark, 0.0, TRUE, 0.0, 0.0);
+        if (address != 0){
+            break;
+        }
+    }
+    if (tags){
+        g_slist_free(tags);
+    }
+}
 
 /* Update the cursor image if the pointer moved.  */
-gboolean motion_notify_event(GtkWidget *text_view, GdkEventMotion *event){
+gboolean motion_notify_event(GtkWidget *text_view, GdkEventMotion *event, gpointer preview_textview){
     gint x, y;
 
     gtk_text_view_window_to_buffer_coords (GTK_TEXT_VIEW (text_view), 
                                          GTK_TEXT_WINDOW_WIDGET,
                                          event->x, event->y, &x, &y);
     set_cursor_if_appropriate (GTK_TEXT_VIEW (text_view), x, y);
+    show_preview_if_appropriate(GTK_TEXT_VIEW((GtkWidget *)preview_textview), x, y);
+    
     gdk_window_get_pointer (text_view->window, NULL, NULL, NULL);
     return FALSE;
 }
